@@ -1,0 +1,16 @@
+{
+  "name": "get.io",
+  "version": "0.0.1",
+  "description": "Custom put.io client and automaton",
+  "main": "src/index.js",
+  "repository": "git@github.com:lopis/get.io.git",
+  "author": "Joao Lopes <joao.lopes@simplesurance.de>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.15.3",
+    "node-fetch": "^1.7.1"
+  },
+  "scripts": {
+    "dev": "node src/index.js"
+  }
+}
