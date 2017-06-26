@@ -1,7 +1,11 @@
 const express = require('express')
+const bodyParser = require('body-parser')
 const app = express()
 const fetch = require('node-fetch')
 const secrets = require('./config/secrets')
+const fs = require('fs');
+
+app.use(bodyParser.json());
 
 function getAuthRedirect() {
   const host = 'https://api.put.io/v2/oauth2/authenticate'
@@ -20,21 +24,48 @@ function getAccessTokenRedirect(code) {
   return `${host}?client_id=${id}&client_secret=${client}&grant_type=${type}&redirect_uri=${returnUrl}&code=${code}`
 }
 
-app.get('/login*', function (req, res) {
-  if (!req.query.code) {
-    // First oauth2 step
-    res.redirect(getAuthRedirect());
-  }
+function write(fileName, text) {
+  fs.writeFile(fileName, text, function(err) {
+    if(err) {
+        return console.log(err);
+    }
 
-  // Second oauth2 step
-  fetch(getAccessTokenRedirect(req.query.code))
+    console.log("The file was saved!");
+  });
+}
+
+function read(fileName) {
+  return fs.readFileSync(fileName, 'utf8')
+}
+
+function authenticate(code, res) {
+  console.log("code:", code);
+  console.log(getAccessTokenRedirect(code));
+
+  fetch(getAccessTokenRedirect(code))
     .then(result => {
       return result.text()
     })
-    .then(text => {
-      console.log(text);
-      res.redirect('/');
+    .then(json => {
+      write('src/config/code', JSON.parse(json).access_token)
+      res.redirect('/welcome.html');
     })
+}
+
+app.get('/login*', function (req, res) {
+  // Check if we already have an access code
+  const code = read('src/config/code')
+  if (code) {
+    res.redirect('/welcome.html')
+
+  } else if (req.query.code) {
+    // Second oauth2 step
+    authenticate(req.query.code, res)
+
+  } else {
+    // First oauth2 step
+    res.redirect(getAuthRedirect())
+  }
 })
 
 app.use('/', express.static('src/www'))
