@@ -9,6 +9,8 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
+    "filedownloader": "^1.2.7",
+    "moment": "^2.18.1",
     "node-fetch": "^1.7.1"
   },
   "scripts": {
