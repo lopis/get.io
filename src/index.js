@@ -5,7 +5,8 @@ const fetch = require('node-fetch')
 const secrets = require('./config/secrets')
 const fs = require('fs')
 const moment = require('moment')
-const mtd = require('zeltice-mt-downloader');
+const mtd = require('zeltice-mt-downloader')
+const cron = require('node-cron')
 
 app.use(bodyParser.json())
 
@@ -95,20 +96,9 @@ app.get('/login*', function (req, res) {
   }
 })
 
-app.get('/files', (req, res) => {
-  const code = readAccessToken()
-  if (!code) {
-    res.redirect('/login')
-    return
-  }
-
-  getFiles(code)
-  .then(json => {
-    res.setHeader('Content-Type', 'application/json')
-    res.send(json)
-  })
-})
-
+/*
+ * Fetches the list of all files and directories in the root.
+ */
 function getFiles(code) {
   const url = 'files/list'
   return fetch(`${api}/${url}?oauth_token=${code}`)
