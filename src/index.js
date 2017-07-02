@@ -2,7 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
 const fetch = require('node-fetch')
-const secrets = require('./config/secrets')
+const config = require('./config/config')
 const fs = require('fs')
 const moment = require('moment')
 const mtd = require('zeltice-mt-downloader')
@@ -16,18 +16,18 @@ const api = 'https://api.put.io/v2'
 
 function getAuthRedirectURL() {
   const url = 'oauth2/authenticate'
-  const returnUrl = 'http://localhost:3000/login'
-  const id = secrets.client_id
+  const returnUrl = `http://${config.domain}:${config.port}/login`
+  const id = config.client_id
   const type = 'code'
   return `${api}/${url}?client_id=${id}&response_type=${type}&redirect_uri=${returnUrl}`
 }
 
 function getAccessTokenRedirectURL(code) {
   const url = 'oauth2/access_token'
-  const id = secrets.client_id
-  const client = secrets.client_secret
+  const id = config.client_id
+  const client = config.client_secret
   const type = 'authorization_code'
-  const returnUrl = 'http://localhost:3000/welcome'
+  const returnUrl = `http://${config.domain}:${config.port}/welcome`
   return `${api}/${url}?client_id=${id}&client_secret=${client}&grant_type=${type}&redirect_uri=${returnUrl}&code=${code}`
 }
 
@@ -76,6 +76,7 @@ function authenticate(code, res) {
     })
     .then(json => {
       write('src/config/code', JSON.parse(json).access_token)
+      log(`Auth code saved successfully`)
       res.redirect('/welcome.html')
     })
 }
@@ -210,6 +211,6 @@ app.get('/events', (req, res) => {
 
 app.use('/', express.static('src/www'))
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!')
+app.listen(config.port, function () {
+  console.log('get.io listening on port ' + config.port)
 })

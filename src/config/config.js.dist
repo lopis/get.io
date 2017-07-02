@@ -2,6 +2,8 @@ const secrets = {
   "secret": "YOUR_SECRET",
   "client_id": "YOUR_ID",
   "token": "YOUR_TOKEN",
+  "hostname": "APP_IP_OR_DOMAIN",
+  "port": "3000",
 }
 
 module.exports = secrets
