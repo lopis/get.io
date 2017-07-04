@@ -3,3 +3,4 @@ src/config/*
 !src/config/*.dist
 downloads/*
 !downloads/.gitkeep
+*.log

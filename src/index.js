@@ -147,7 +147,15 @@ function getTransferEventList(code) {
     })
 }
 
-function getDownloadLink(code, fileId) {
+function getDownloadLink(code, fileId, file) {
+  if (file.type === 'application/x-directory') {
+    // directories must be zipped before downloading
+    const zipUrl = '/zips/create'
+    const params = {
+      file_ids: [file]
+    }
+    fetch(zipUrl, { method: 'POST', body: params })
+  }
   const url = `files/${fileId}/download`
   return fetch(`${api}/${url}?oauth_token=${code}`)
 }
@@ -170,7 +178,7 @@ app.get('/events', (req, res) => {
         const file = files[event.fileId]
         if (file && !downloadedFileExists(file.name)) {
           fileCounter++
-          getDownloadLink(code, event.fileId)
+          getDownloadLink(code, event.fileId, file)
           .then(result => {
             const link = result.url
 
