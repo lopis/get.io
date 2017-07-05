@@ -16,7 +16,7 @@ const api = 'https://api.put.io/v2'
 
 function getAuthRedirectURL() {
   const url = 'oauth2/authenticate'
-  const returnUrl = `http://${config.domain}:${config.port}/login`
+  const returnUrl = `http://${config.hostname}:${config.port}/login`
   const id = config.client_id
   const type = 'code'
   return `${api}/${url}?client_id=${id}&response_type=${type}&redirect_uri=${returnUrl}`
@@ -27,7 +27,7 @@ function getAccessTokenRedirectURL(code) {
   const id = config.client_id
   const client = config.client_secret
   const type = 'authorization_code'
-  const returnUrl = `http://${config.domain}:${config.port}/welcome`
+  const returnUrl = `http://${config.hostname}:${config.port}/welcome`
   return `${api}/${url}?client_id=${id}&client_secret=${client}&grant_type=${type}&redirect_uri=${returnUrl}&code=${code}`
 }
 
