@@ -31,8 +31,12 @@ Now, navigate to `http://localhost:3000/events` and your files will start to dow
 
 6. Now that the app is running and you've logged in, the cron job will stay running and download new transfered files regularly.
 
-# TODO
+# Version 1.0:
 
+ - [x] Authenticate
+ - [x] Download simple files
+ - [ ] Keep a list of active downloads to easily resume and see progress
  - [ ] Download directories and zips
+ - [ ] Setup regular job to check for new files
  - [ ] Make a page with the list of movies that are ready to watch
  - [ ] Download icons for each file
