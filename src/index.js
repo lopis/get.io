@@ -147,15 +147,77 @@ function getTransferEventList(code) {
     })
 }
 
-function getDownloadLink(code, fileId, file) {
-  if (file.type === 'application/x-directory') {
-    // directories must be zipped before downloading
-    const zipUrl = '/zips/create'
-    const params = {
-      file_ids: [file]
+function downloadFromUrl (url, fileName) {
+  // Create new downloader
+  var downloader = new mtd(
+    downloadDir + fileName,
+    url,
+    {
+      onStart: function() {
+        log(`Download Started: ${fileName}`)
+      },
+      // Triggered when the download is completed
+      onEnd: function(err) {
+        if (err) error(err)
+        else log(`Download completed: ${fileName}`)
+      }
     }
-    fetch(zipUrl, { method: 'POST', body: params })
-  }
+  )
+  downloader.start()
+}
+
+function pollZipStatus (code, zipId, fileName) {
+  const url = `zips/${zipId}`
+  fetch(`${api}/${url}?oauth_token=${code}`)
+    .then(response => {
+      return response.text()
+    })
+    .then(text => {
+      const result = JSON.parse(text)
+      if (result.url) {
+        log(`Zip ready for ${fileName}`)
+        downloadFromUrl (result.url, fileName + '.zip')
+      } else {
+        log(`Zip status for ${fileName}: ${result.status}`)
+        setTimeout(
+          () => pollZipStatus(code, zipId, fileName),
+          5000
+        )
+      }
+    })
+}
+
+function createZip(code, fileId, fileName) {
+  const url = 'zips/create'
+  const params = `file_ids=${fileId}`
+  fetch(
+      `${api}/${url}?oauth_token=${code}`,
+      {
+        method: 'POST',
+        body: params,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+      }
+    )
+    .then(response => {
+      return response.text()
+    })
+    .then(text => {
+      const result = JSON.parse(text)
+      if (result.zip_id) {
+        log(`Zip requested for ${fileName}, id ${result.zip_id}`)
+        pollZipStatus(code, result.zip_id, fileName)
+      } else {
+        error(`An error occured creating zip for ${fileName}`)
+      }
+    })
+    .catch(e => {
+      error(e)
+    })
+}
+
+function getDownloadLink(code, fileId, file) {
   const url = `files/${fileId}/download`
   return fetch(`${api}/${url}?oauth_token=${code}`)
 }
@@ -167,9 +229,6 @@ app.get('/events', (req, res) => {
     return
   }
 
-  let fileCounter = 0
-  let connThreads = []
-
   getTransferEventList(code)
   .then(events => {
     getFiles(code)
@@ -177,36 +236,21 @@ app.get('/events', (req, res) => {
       events.map(event => {
         const file = files[event.fileId]
         if (file && !downloadedFileExists(file.name)) {
-          fileCounter++
-          getDownloadLink(code, event.fileId, file)
-          .then(result => {
-            const link = result.url
+          if (file.type === 'application/x-directory') {
+            // directories must be zipped before downloading
+            log(`File ${file.name} is a directory`)
+            createZip(code, event.fileId, file.name)
+          } else {
+            getDownloadLink(code, event.fileId, file)
+            .then(result => {
+              const link = result.url
+              downloadFromUrl(link, file.name)
+            })
+            .catch((e) => {
+              error(e)
+            })
+          }
 
-            // Create new downloader
-            var downloader = new mtd(
-              downloadDir + file.name,
-              link,
-              {
-                onStart: function(meta) {
-                  log(`Download Started: ${file.name}`)
-                  connThreads.push(meta)
-                  fileCounter--
-                  if (fileCounter <= 0) {
-                    res.send({
-                      files: files,
-                      connThreads: connThreads
-                    })
-                  }
-                },
-                //Triggered when the download is completed
-                onEnd: function(err, result) {
-                  if (err) error(err)
-                  else log(`Download completed: ${file.name}`)
-                }
-              }
-            )
-            downloader.start()
-          })
         }
       })
     })
@@ -215,6 +259,8 @@ app.get('/events', (req, res) => {
     console.error(e.toString())
     res.send(e)
   })
+
+  res.redirect('/welcome.html?done=true')
 })
 
 app.use('/', express.static('src/www'))

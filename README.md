@@ -36,7 +36,8 @@ Now, navigate to `http://localhost:3000/events` and your files will start to dow
  - [x] Authenticate
  - [x] Download simple files
  - [ ] Keep a list of active downloads to easily resume and see progress
- - [ ] Download directories and zips
+ - [x] Download directories as zips
+ - [ ] Unzip directories when download finishes
  - [ ] Setup regular job to check for new files
  - [ ] Make a page with the list of movies that are ready to watch
  - [ ] Download icons for each file
