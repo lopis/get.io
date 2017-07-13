@@ -7,6 +7,7 @@ const fs = require('fs')
 const moment = require('moment')
 const mtd = require('zeltice-mt-downloader')
 const cron = require('node-cron')
+const AdmZip = require('adm-zip')
 
 app.use(bodyParser.json())
 
@@ -147,10 +148,16 @@ function getTransferEventList(code) {
     })
 }
 
-function downloadFromUrl (url, fileName) {
+function unzip(path, fileName) {
+  var zip = new AdmZip(path)
+  zip.extractAllTo(downloadDir + fileName, /*overwrite*/true)
+}
+
+function downloadFromUrl (url, fileName, isZip) {
+  const path = isZip ? downloadDir + 'zips/' + fileName : downloadDir + fileName
   // Create new downloader
   var downloader = new mtd(
-    downloadDir + fileName,
+    path,
     url,
     {
       onStart: function() {
@@ -160,6 +167,19 @@ function downloadFromUrl (url, fileName) {
       onEnd: function(err) {
         if (err) error(err)
         else log(`Download completed: ${fileName}`)
+
+        if (isZip) {
+          log(`Zip download completed: ${fileName}`)
+          try {
+            log(`Extracting ${fileName}`)
+            unzip(path, fileName)
+            log(`Extracted successfully ${fileName}`)
+          } catch (e) {
+            error(`Failed to extract ${fileName}`)
+          } finally {
+
+          }
+        }
       }
     }
   )
@@ -176,7 +196,7 @@ function pollZipStatus (code, zipId, fileName) {
       const result = JSON.parse(text)
       if (result.url) {
         log(`Zip ready for ${fileName}`)
-        downloadFromUrl (result.url, fileName + '.zip')
+        downloadFromUrl (result.url, fileName + '.zip', true)
       } else {
         log(`Zip status for ${fileName}: ${result.status}`)
         setTimeout(
@@ -247,6 +267,7 @@ app.get('/events', (req, res) => {
               downloadFromUrl(link, file.name)
             })
             .catch((e) => {
+              error(file.name)
               error(e)
             })
           }

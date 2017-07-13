@@ -2,5 +2,7 @@ node_modules/
 src/config/*
 !src/config/*.dist
 downloads/*
+downloads/zips/*
 !downloads/.gitkeep
+!downloads/zips
 *.log
