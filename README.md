@@ -35,9 +35,24 @@ Now, navigate to `http://localhost:3000/events` and your files will start to dow
 
  - [x] Authenticate
  - [x] Download simple files
- - [ ] Keep a list of active downloads to easily resume and see progress
  - [x] Download directories as zips
- - [ ] Unzip directories when download finishes
+ - [x] Unzip directories when download finishes
  - [ ] Setup regular job to check for new files
- - [ ] Make a page with the list of movies that are ready to watch
+
+# Version 1.1:
  - [ ] Download icons for each file
+ - [ ] Keep a list of active downloads to easily resume and see progress
+ - [ ] Make a (web) page with the list of movies that are ready to watch
+ - [ ] Adapt @GizmoXomziG's script (see /scripts directory) to navigate the page with the TV remote.
+
+# Futher notes
+
+Using a samsung tv remote to control the Pi.
+https://ubuntu-mate.community/t/controlling-raspberry-pi-with-tv-remote-using-hdmi-cec/4250
+
+Just run
+`export DISPLAY=":0"`
+`cec-client | ~/cecremote.sh`
+
+Playing video on the pi:
+https://www.raspberrypi.org/documentation/usage/video/
